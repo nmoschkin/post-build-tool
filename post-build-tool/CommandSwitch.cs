@@ -1,6 +1,6 @@
 ﻿namespace PostBuildTool
 {
-    public class CommandSwitch : ICloneable
+    internal class CommandSwitch : ICloneable
     {
         public CommandSwitch(string[] switches, string desc, bool takesArgument, string argumentName, bool required = false, Dictionary<string, string> options = null)
         {

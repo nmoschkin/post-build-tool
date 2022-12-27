@@ -1,17 +1,19 @@
 ﻿using Newtonsoft.Json;
 
+using PostBuildTool.Contracts;
+
 namespace PostBuildTool.Versioning
 {
-    [JsonConverter(typeof(VersionConverter))]
-    public class BuildVersion : IEquatable<BuildVersion>, ICloneable
+    [JsonConverter(typeof(VersionConverter<BuildVersion>))]
+    public class BuildVersion : IBuildVersion
     {
-        public int Major { get; set; } = 1;
+        public virtual int Major { get; set; } = 1;
 
-        public int Minor { get; set; } = 0;
+        public virtual int Minor { get; set; } = 0;
 
-        public int Revision { get; set; } = 0;
+        public virtual int Revision { get; set; } = 0;
 
-        public int? Build { get; set; } = null;
+        public virtual int? Build { get; set; } = null;
 
         public static int GetHourOfYear()
         {
@@ -26,7 +28,7 @@ namespace PostBuildTool.Versioning
             return (int)DateTime.Now.TimeOfDay.TotalMinutes;
         }
 
-        public bool Equals(BuildVersion other)
+        public bool Equals(IBuildVersion other)
         {
             return Major == other.Major && Minor == other.Minor && Revision == other.Revision && Build == other.Build;
         }
@@ -35,6 +37,37 @@ namespace PostBuildTool.Versioning
         {
             if (obj is BuildVersion v) return Equals(v);
             return false;
+        }
+
+        public int CompareTo(IBuildVersion other)
+        {
+            var r = Major.CompareTo(other.Major);
+
+            if (r == 0)
+            {
+                r = Minor.CompareTo(other.Minor);
+                if (r == 0)
+                {
+                    r = Revision.CompareTo(other.Revision);
+                    if (r == 0)
+                    {
+                        if (Build is int x && other.Build is int y)
+                        {
+                            r = x.CompareTo(y);
+                        }
+                        else if (Build == null)
+                        {
+                            r = -1;
+                        }
+                        else if (other.Build == null)
+                        {
+                            r = 1;
+                        }
+                    }
+                }
+            }
+
+            return r;
         }
 
         public override int GetHashCode()
@@ -56,46 +89,12 @@ namespace PostBuildTool.Versioning
 
         public static bool TryParse(string s, out BuildVersion v)
         {
-            try
-            {
-                v = Parse(s);
-                return true;
-            }
-            catch
-            {
-                v = null;
-                return false;
-            }
+            return IBuildVersion.TryParse(s, out v);
         }
 
         public static BuildVersion Parse(string version)
         {
-            if (string.IsNullOrEmpty(version)) throw new ArgumentNullException(nameof(version));
-
-            var sp = version.Split('.');
-            var v = new BuildVersion();
-
-            if (sp.Length >= 1)
-            {
-                v.Major = int.Parse(sp[0]);
-            }
-
-            if (sp.Length >= 2)
-            {
-                v.Minor = int.Parse(sp[1]);
-            }
-
-            if (sp.Length >= 3)
-            {
-                v.Revision = int.Parse(sp[2]);
-            }
-
-            if (sp.Length >= 4)
-            {
-                v.Build = int.Parse(sp[3]);
-            }
-
-            return v;
+            return IBuildVersion.Parse<BuildVersion>(version);
         }
 
         public BuildVersion()
@@ -106,6 +105,7 @@ namespace PostBuildTool.Versioning
             Major = major;
             Minor = minor;
             Revision = revision;
+            Build = null;
         }
 
         public BuildVersion(int major, int minor, int revision, int build)

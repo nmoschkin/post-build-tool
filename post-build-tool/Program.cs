@@ -1,4 +1,5 @@
-﻿using PostBuildTool.Projects;
+﻿using PostBuildTool.Contracts;
+using PostBuildTool.Projects;
 using PostBuildTool.Versioning;
 
 using System.Text;
@@ -7,7 +8,7 @@ using System.Xml.Linq;
 
 namespace PostBuildTool
 {
-    public static class Program
+    internal static class Program
     {
         private static void ProcessProject(string file)
         {
@@ -19,16 +20,108 @@ namespace PostBuildTool
 
             doc.LoadXml(txt);
 
-            var proj = Project.FromXml(doc);
+            var proj = Project.FromXml(doc, file);
+            bool nug = false;
 
-            FConsole.WriteLine($"Current Version: {proj.Version}");
+            if (RunArgs.ContainsKey("/ngo"))
+            {
+                var folder = Path.GetDirectoryName(file);
+                string nugfile = null;
+                string projname = proj?.Title ?? Path.GetFileName(folder);
+
+                FConsole.WriteLine($"Scanning for NuGet packages in '{folder}' ...");
+
+                var nugets = FindAllNuGets(folder + "\\bin");
+                bool failget = true;
+
+                if (nugets != null && nugets.Count > 0)
+                {
+                    FConsole.WriteLine($"{nugets.Count} packages found. Determining most recent file...");
+
+                    if (RunArgs.TryGetValue("/pn", out var pno))
+                    {
+                        projname = pno.ArgumentValue ?? projname;
+                    }
+
+                    var k = new List<DateTime>(nugets.Keys);
+
+                    k.Sort((x, y) => -1 * x.CompareTo(y));
+                    projname = projname.ToLower();
+                    foreach (var key in k)
+                    {
+                        var tp = nugets[key].ToLower();
+
+                        if ((Path.GetFileName(tp).ToLower().Contains(projname)) && (tp.Contains("release\\") || tp.Contains("release/")))
+                        {
+                            failget = false;
+                            nugfile = tp;
+
+                            break;
+                        }
+                    }
+                }
+
+                if (!failget && !string.IsNullOrEmpty(nugfile))
+                {
+                    var fn = Path.GetFileNameWithoutExtension(nugfile).ToLower().Replace(projname.ToLower() + ".", "");
+
+                    if (BuildVersion.TryParse(fn, out var vers))
+                    {
+                        FConsole.WriteLine($"Taking version from NuGet package file dated {File.GetLastWriteTime(nugfile)}");
+                        nug = true;
+                        proj.Version = vers;
+                    }
+                    else
+                    {
+                        failget = true;
+                    }
+                }
+
+                if (failget || string.IsNullOrEmpty(nugfile))
+                {
+                    if (RunArgs.TryGetValue("/ngb", out var ngb))
+                    {
+                        if (Enum.TryParse<NuGetBehavior>(ngb.ArgumentValue, out var result))
+                        {
+                            Behavior = result;
+                        }
+                    }
+
+                    if (Behavior == NuGetBehavior.QuitError)
+                    {
+                        FConsole.WriteLine("No NuGet packages found. Quitting with Error Code 2.");
+                        Environment.Exit(2);
+                    }
+                    else if (Behavior == NuGetBehavior.QuitNoError)
+                    {
+                        FConsole.WriteLine("No NuGet packages found. Quitting with Error Code 0.");
+                        Environment.Exit(2);
+                    }
+                    else
+                    {
+                        FConsole.WriteLine("No NuGet packages found. Ignoring, and continuing.");
+                    }
+                }
+            }
+
+            if (nug)
+            {
+                FConsole.WriteLine($"Current Version (NuGet Package): {proj.Version}");
+            }
+            else
+            {
+                FConsole.WriteLine($"Current Version: {proj.Version}");
+            }
+
             FConsole.WriteLine("Versionifying ...");
-
             Versionifier.Versionify(proj);
-
             FConsole.WriteLine($"New Version: {proj.Version}");
-            proj.ToXml(doc);
-            File.WriteAllText(file, PrettyXml(doc.OuterXml));
+
+            if (Versionifier.WriteMode == WriteMode.Application)
+            {
+                proj.ToXml(doc);
+                File.WriteAllText(file, PrettyXml(doc.OuterXml));
+            }
         }
 
         private static string PrettyXml(string xml)
@@ -72,11 +165,9 @@ namespace PostBuildTool
             }
         }
 
-        private static Dictionary<DateTime, string> FindNuGets(string folder, Dictionary<DateTime, string> current = null)
+        private static Dictionary<DateTime, string> FindAllNuGets(string folder, Dictionary<DateTime, string> current = null)
         {
             current = current ?? new Dictionary<DateTime, string>();
-
-            FConsole.WriteLine($"Scanning for NuGet packages in '{folder}' ...");
 
             var abspath = Path.GetFullPath(folder);
 
@@ -90,18 +181,21 @@ namespace PostBuildTool
 
             foreach (var dir in dirs)
             {
-                FindNuGets(dir, current);
+                FindAllNuGets(dir, current);
             }
 
             return current;
         }
 
+        public static string NuGetFile { get; private set; }
         public static bool Recurse { get; private set; }
         public static bool Silent { get; private set; }
         public static FileConsole FConsole { get; private set; }
         public static Dictionary<string, CommandSwitch> RunArgs { get; private set; }
 
-        public static Versionifier Versionifier { get; set; } = new Versionifier(VersionifyMode.BumpBuild);
+        public static IVersionifier Versionifier { get; set; }
+
+        public static NuGetBehavior Behavior { get; set; }
 
         public static void Main(string[] args)
         {
@@ -113,27 +207,41 @@ namespace PostBuildTool
 
             RunArgs = parsed;
 
-            if (parsed.TryGetValue("/m", out var cmode))
-            {
-                if (Enum.TryParse<VersionifyMode>(cmode.ArgumentValue, out var gm))
-                {
-                    Versionifier.Mode = gm;
-                }
-            }
-
             if (parsed.ContainsKey("/h"))
             {
+                // that's that
                 CommandSwitch.PrintHelp();
+                return;
             }
 
-            if (parsed.TryGetValue("/v", out var version))
+            // check if we're importing a lib
+            if (parsed.TryGetValue("/lib", out var libfile))
             {
-                Versionifier.OverrideVersion = BuildVersion.Parse(version.ArgumentValue);
+                parsed.TryGetValue("/cn", out var classname);
+                Versionifier = VLibLoader.GetInstance(libfile.ArgumentValue, classname?.ArgumentValue);
             }
-
-            if (parsed.TryGetValue("/ov", out version))
+            else
             {
-                Versionifier.OverridePrevious = BuildVersion.Parse(version.ArgumentValue);
+                Versionifier vf;
+                Versionifier = vf = new Versionifier(VersionifyMode.BumpBuild);
+
+                if (parsed.TryGetValue("/m", out var cmode))
+                {
+                    if (Enum.TryParse<VersionifyMode>(cmode.ArgumentValue, out var gm))
+                    {
+                        vf.Mode = gm;
+                    }
+                }
+
+                if (parsed.TryGetValue("/v", out var version))
+                {
+                    vf.OverrideVersion = BuildVersion.Parse(version.ArgumentValue);
+                }
+
+                if (parsed.TryGetValue("/ov", out version))
+                {
+                    vf.OverridePrevious = BuildVersion.Parse(version.ArgumentValue);
+                }
             }
 
             Recurse = parsed.ContainsKey("/r");
@@ -173,11 +281,11 @@ namespace PostBuildTool
                 new CommandSwitch("/r|/recursive", "Recursively scan the directory and sub-directories for .csproj files."),
                 new CommandSwitch("/p|/project", "Open and update the specified project.", "project"),
                 new CommandSwitch("/v|/version", "Force the specified version number (as opposed to auto-incrementing.)", "version"),
-                new CommandSwitch("/ngo", "Scan NuGet packages to determine most recent last version."),
-                new CommandSwitch("/pn", "Specify the NuGet package name (used with /ngo.)", "name"),
                 new CommandSwitch("/ov|/oldversion", "Specify the PreviousVersion variable (as opposed to being automatically calculated.)", "version"),
                 new CommandSwitch("/q|/quiet", "Suppress all output."),
                 new CommandSwitch("/l|/log", "Log output to the specified file.", "file"),
+                new CommandSwitch("/lib", "Use an IVersionifier instance from the specified DLL.", "dll"),
+                new CommandSwitch("/cn", "Optional class name to be used with /lib.", "name"),
                 new CommandSwitch("/h|/help", "Displays this help screen."),
                 new CommandSwitch(new[] { "/m", "/mode" }, "Set the versioning mode.", true, "mode", options: new Dictionary<string, string>()
                 {
@@ -189,6 +297,14 @@ namespace PostBuildTool
                     { "RevisionHour" , "Put the hour of the year in the revision number" },
                     { "BuildMinute" , "Put the hour of the year in the revision number," },
                     { "BuildMinute2" , "and put the minute of the day in the build number" }
+                }),
+                new CommandSwitch("/ngo", "Scan NuGet packages to determine most recent last version."),
+                new CommandSwitch("/pn", "Specify the NuGet package name (used with /ngo.)", "name"),
+                new CommandSwitch(new[] { "/ngb" }, "Set the behavior if no NuGet packages are found.", true, "behavior", options: new Dictionary<string, string>()
+                {
+                    { "QuitError" , "Quit with non-zero exit code (default). This will cause a compiler failure in post-build actions." },
+                    { "QuitNoError" , "Quit with zero exit code." },
+                    { "ContinueIgnore" , "Ignore the NuGet package request and continue without it." },
                 })
             };
 

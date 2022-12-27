@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 
+using PostBuildTool.Contracts;
 using PostBuildTool.Versioning;
 
 using System;
@@ -9,7 +10,7 @@ using System.Xml;
 
 namespace PostBuildTool.Projects
 {
-    public class Project
+    public class Project : IProject
     {
         public void ToXml(XmlDocument doc)
         {
@@ -27,7 +28,7 @@ namespace PostBuildTool.Projects
             }
         }
 
-        public static Project FromXml(XmlDocument doc)
+        public static Project FromXml(XmlDocument doc, string filename)
         {
             var elem = doc.GetElementsByTagName("PropertyGroup")[0];
             var dict = new Dictionary<string, string>();
@@ -42,64 +43,77 @@ namespace PostBuildTool.Projects
             var proj = new Project();
 
             JsonConvert.PopulateObject(json, proj);
+
+            proj.XmlDoc = doc;
+            proj.Filename = filename;
+
             return proj;
         }
 
+        [JsonIgnore] public virtual string Filename { get; protected set; }
+
+        [JsonIgnore]
+        public virtual XmlDocument XmlDoc { get; protected internal set; }
+
         [JsonProperty("TargetFramework")]
-        public string TargetFramework { get; set; }
+        public virtual string TargetFramework { get; set; }
 
         [JsonProperty("ImplicitUsings")]
-        public string ImplicitUsings { get; set; }
+        public virtual string ImplicitUsings { get; set; }
 
         [JsonProperty("Nullable")]
-        public string Nullable { get; set; }
+        public virtual string Nullable { get; set; }
 
+        [JsonConverter(typeof(VersionConverter<BuildVersion>))]
         [JsonProperty("AssemblyVersion")]
-        public BuildVersion AssemblyVersion { get; set; }
+        public virtual IBuildVersion AssemblyVersion { get; set; } = new BuildVersion();
 
+        [JsonConverter(typeof(VersionConverter<BuildVersion>))]
         [JsonProperty("FileVersion")]
-        public BuildVersion FileVersion { get; set; }
+        public virtual IBuildVersion FileVersion { get; set; } = new BuildVersion();
 
         [JsonProperty("Authors")]
-        public string Authors { get; set; }
+        public virtual string Authors { get; set; }
 
+        [JsonConverter(typeof(VersionConverter<BuildVersion>))]
         [JsonProperty("PreviousVersion")]
-        public BuildVersion PreviousVersion { get; set; }
+        public virtual IBuildVersion PreviousVersion { get; set; } = new BuildVersion();
 
+        [JsonConverter(typeof(VersionConverter<BuildVersion>))]
         [JsonProperty("Version")]
-        public BuildVersion Version { get; set; }
+        public virtual IBuildVersion Version { get; set; } = new BuildVersion();
 
         [JsonProperty("Product")]
-        public string Product { get; set; }
+        public virtual string Product { get; set; }
 
         [JsonProperty("Description")]
-        public string Description { get; set; }
+        public virtual string Description { get; set; }
 
         [JsonProperty("Copyright")]
-        public string Copyright { get; set; }
+        public virtual string Copyright { get; set; }
 
         [JsonProperty("RepositoryUrl")]
-        public string RepositoryUrl { get; set; }
+        public virtual string RepositoryUrl { get; set; }
 
         [JsonProperty("RepositoryType")]
-        public string RepositoryType { get; set; }
+        public virtual string RepositoryType { get; set; }
 
         [JsonProperty("NeutralLanguage")]
-        public string NeutralLanguage { get; set; }
+        public virtual string NeutralLanguage { get; set; }
 
         [JsonProperty("SignAssembly")]
-        public string SignAssembly { get; set; }
+        public virtual string SignAssembly { get; set; }
 
         [JsonProperty("GeneratePackageOnBuild")]
-        public string GeneratePackageOnBuild { get; set; }
+        public virtual string GeneratePackageOnBuild { get; set; }
 
         [JsonProperty("Title")]
-        public string Title { get; set; }
+        public virtual string Title { get; set; }
 
         [JsonProperty("PackageLicenseExpression")]
-        public string PackageLicenseExpression { get; set; }
+        public virtual string PackageLicenseExpression { get; set; }
 
         [JsonProperty("PackageRequireLicenseAcceptance")]
-        public string PackageRequireLicenseAcceptance { get; set; }
+        public virtual string PackageRequireLicenseAcceptance { get; set; }
     }
 }

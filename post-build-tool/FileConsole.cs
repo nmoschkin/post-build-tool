@@ -2,7 +2,7 @@
 
 namespace PostBuildTool
 {
-    public class FileConsole : IDisposable
+    internal class FileConsole : IDisposable
     {
         private FileStream fs = null;
         private bool disposedValue;

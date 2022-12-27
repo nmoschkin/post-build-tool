@@ -2,7 +2,11 @@
   "profiles": {
     "post-build-tool": {
       "commandName": "Project",
-      "commandLineArgs": "/v 8.0.0.1000 /ov 8.0.0.1000 /d \"E:\\Projects\\Personal Projects\\Repos\\DataTools\\Core\\DataTools.Text\""
+      "commandLineArgs": "/ngo /d \"E:\\Projects\\Personal Projects\\Repos\\DataTools\\Core\\DataTools.Text\""
+    },
+    "external-test": {
+      "commandName": "Project",
+      "commandLineArgs": "/d \"E:\\Projects\\Personal Projects\\Repos\\DataTools\\Core\\DataTools.Text\" /lib \"E:\\Projects\\Personal Projects\\Repos\\post-build-tool\\ExternalVersionify\\bin\\Debug\\net7.0\\ExternalVersionify.dll\""
     }
   }
 }

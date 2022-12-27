@@ -1,19 +1,22 @@
 ﻿using Newtonsoft.Json;
 
+using PostBuildTool.Contracts;
+
 namespace PostBuildTool.Versioning
 {
-    public class VersionConverter : JsonConverter<BuildVersion>
+    internal class VersionConverter<T> : JsonConverter<T> where T : class, IBuildVersion, new()
     {
-        public override BuildVersion ReadJson(JsonReader reader, Type objectType, BuildVersion existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override T ReadJson(JsonReader reader, Type objectType, T existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             if (reader.Value is string s)
             {
-                return BuildVersion.Parse(s);
+                return IBuildVersion.Parse<T>(s);
             }
+
             throw new NotImplementedException();
         }
 
-        public override void WriteJson(JsonWriter writer, BuildVersion value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, T value, JsonSerializer serializer)
         {
             writer.WriteValue(value.ToString());
         }

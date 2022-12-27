@@ -1,4 +1,4 @@
-﻿using PostBuildTool.Projects;
+﻿using PostBuildTool.Contracts;
 
 using System;
 using System.Linq;
@@ -6,7 +6,25 @@ using System.Text;
 
 namespace PostBuildTool.Versioning
 {
-    public class Versionifier : IVersionifier
+    [Flags]
+    internal enum VersionifyMode
+    {
+        BumpBuild = 0x01,
+        BumpRevsion = 0x02,
+        BumpMinor = 0x04,
+        BumpMajor = 0x08,
+        BumpMask = 0x0f,
+        BuildHour = 0x10,
+        RevisionHour = 0x20,
+        BuildMinute = 0x40,
+        BuildMask = 0xf0,
+        RegularMask = 0xff,
+        Custom = 0xf000,
+        DoNotIncrement = 0x0100,
+        SpecialMask = 0xff00,
+    }
+
+    internal class Versionifier : IVersionifier
     {
         /// <summary>
         /// The type of built-in versionification to run.
@@ -15,6 +33,8 @@ namespace PostBuildTool.Versioning
         /// This is a flag
         /// </remarks>
         public VersionifyMode Mode { get; set; } = VersionifyMode.BumpBuild;
+
+        public WriteMode WriteMode => WriteMode.Application;
 
         /// <summary>
         /// The default start integer for the <see cref="BuildVersion.Build"/> value if it is uninitialized.
@@ -36,13 +56,13 @@ namespace PostBuildTool.Versioning
             BuildStart = buildStart;
         }
 
-        public BuildVersion OverridePrevious { get; set; }
+        public IBuildVersion OverridePrevious { get; set; }
 
-        public BuildVersion OverrideVersion { get; set; }
+        public IBuildVersion OverrideVersion { get; set; }
 
-        public void Versionify(Project project)
+        public void Versionify(IProject project)
         {
-            var prev = project.PreviousVersion = OverridePrevious ?? OverrideVersion?.Clone() ?? project.Version.Clone();
+            var prev = project.PreviousVersion = OverridePrevious ?? (IBuildVersion)OverrideVersion?.Clone() ?? (IBuildVersion)project.Version.Clone();
             var vers = OverrideVersion ?? project.Version ?? new BuildVersion() { Build = BuildStart };
 
             if (OverrideVersion == null)
@@ -115,8 +135,8 @@ namespace PostBuildTool.Versioning
             }
 
             project.Version = vers;
-            project.FileVersion = vers.Clone();
-            project.AssemblyVersion = vers.Clone();
+            project.FileVersion = (IBuildVersion)vers.Clone();
+            project.AssemblyVersion = (IBuildVersion)vers.Clone();
         }
     }
 }
