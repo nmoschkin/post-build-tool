@@ -36,76 +36,85 @@ namespace PostBuildTool.Versioning
             BuildStart = buildStart;
         }
 
+        public BuildVersion OverridePrevious { get; set; }
+
+        public BuildVersion OverrideVersion { get; set; }
+
         public void Versionify(Project project)
         {
-            var prev = project.PreviousVersion = project.Version.Clone();
-            var vers = project.Version ?? new BuildVersion() { Build = BuildStart };
-            int h, m;
+            var prev = project.PreviousVersion = OverridePrevious ?? OverrideVersion?.Clone() ?? project.Version.Clone();
+            var vers = OverrideVersion ?? project.Version ?? new BuildVersion() { Build = BuildStart };
 
-            var mode = Mode & VersionifyMode.RegularMask;
-            var noinc = (Mode & VersionifyMode.DoNotIncrement) != 0;
-
-            switch (mode)
+            if (OverrideVersion == null)
             {
-                case VersionifyMode.BumpBuild:
-                    var build = vers.Build ?? BuildStart;
-                    build++;
-                    vers.Build = build;
-                    break;
+                int h, m;
 
-                case VersionifyMode.BumpRevsion:
-                    vers.Revision++;
-                    break;
+                var mode = Mode & VersionifyMode.RegularMask;
+                var noinc = (Mode & VersionifyMode.DoNotIncrement) != 0;
 
-                case VersionifyMode.BumpMinor:
-                    vers.Minor++;
-                    break;
+                switch (mode)
+                {
+                    case VersionifyMode.BumpBuild:
+                        var build = vers.Build ?? BuildStart;
+                        build++;
+                        vers.Build = build;
+                        break;
 
-                case VersionifyMode.BumpMajor:
-                    vers.Major++;
-                    break;
+                    case VersionifyMode.BumpRevsion:
+                        vers.Revision++;
+                        break;
 
-                case VersionifyMode.BuildHour:
-                    h = BuildVersion.GetHourOfYear();
+                    case VersionifyMode.BumpMinor:
+                        vers.Minor++;
+                        break;
 
-                    if (!noinc && prev.Build is int ipb)
-                    {
-                        while (h <= ipb) h++;
-                    }
+                    case VersionifyMode.BumpMajor:
+                        vers.Major++;
+                        break;
 
-                    vers.Build = h;
-                    break;
+                    case VersionifyMode.BuildHour:
+                        h = BuildVersion.GetHourOfYear();
 
-                case VersionifyMode.RevisionHour:
-                    h = BuildVersion.GetHourOfYear();
-
-                    if (!noinc && prev.Revision is int ipr)
-                    {
-                        while (h <= ipr) h++;
-                    }
-
-                    vers.Revision = h;
-                    break;
-
-                case VersionifyMode.BuildMinute:
-
-                    h = BuildVersion.GetHourOfYear();
-                    m = BuildVersion.GetMinuteOfDay();
-
-                    if (prev.Revision == h)
-                    {
-                        if (!noinc && prev.Build is int ibr)
+                        if (!noinc && prev.Build is int ipb)
                         {
-                            while (m <= ibr) m++;
+                            while (h <= ipb) h++;
                         }
-                    }
 
-                    vers.Revision = h;
-                    vers.Build = m;
+                        vers.Build = h;
+                        break;
 
-                    break;
+                    case VersionifyMode.RevisionHour:
+                        h = BuildVersion.GetHourOfYear();
+
+                        if (!noinc && prev.Revision is int ipr)
+                        {
+                            while (h <= ipr) h++;
+                        }
+
+                        vers.Revision = h;
+                        break;
+
+                    case VersionifyMode.BuildMinute:
+
+                        h = BuildVersion.GetHourOfYear();
+                        m = BuildVersion.GetMinuteOfDay();
+
+                        if (prev.Revision == h)
+                        {
+                            if (!noinc && prev.Build is int ibr)
+                            {
+                                while (m <= ibr) m++;
+                            }
+                        }
+
+                        vers.Revision = h;
+                        vers.Build = m;
+
+                        break;
+                }
             }
 
+            project.Version = vers;
             project.FileVersion = vers.Clone();
             project.AssemblyVersion = vers.Clone();
         }

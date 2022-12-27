@@ -2,7 +2,7 @@
   "profiles": {
     "post-build-tool": {
       "commandName": "Project",
-      "commandLineArgs": "/d \"E:\\Projects\\Personal Projects\\Repos\\DataTools\\Core\\DataTools.Text\""
+      "commandLineArgs": "/v 8.0.0.1000 /ov 8.0.0.1000 /d \"E:\\Projects\\Personal Projects\\Repos\\DataTools\\Core\\DataTools.Text\""
     }
   }
 }
