@@ -1,9 +1,22 @@
-﻿namespace PostBuildTool
+﻿using Newtonsoft.Json;
+
+using PostBuildTool.Converters;
+
+namespace PostBuildTool
 {
-    internal enum NuGetBehavior
+    [JsonConverter(typeof(EnumToStringConverter<NuGetBehavior>))]
+    public enum NuGetBehavior
     {
         QuitError,
         QuitNoError,
         ContinueIgnore
+    }
+
+    [JsonConverter(typeof(EnumToStringConverter<PackageConstraint>))]
+    public enum PackageConstraint
+    {
+        Release,
+        Debug,
+        DontCare
     }
 }

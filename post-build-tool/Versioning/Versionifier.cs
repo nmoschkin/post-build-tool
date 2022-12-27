@@ -1,4 +1,7 @@
-﻿using PostBuildTool.Contracts;
+﻿using Newtonsoft.Json;
+
+using PostBuildTool.Contracts;
+using PostBuildTool.Converters;
 
 using System;
 using System.Linq;
@@ -7,7 +10,8 @@ using System.Text;
 namespace PostBuildTool.Versioning
 {
     [Flags]
-    internal enum VersionifyMode
+    [JsonConverter(typeof(EnumToStringConverter<VersionifyMode>))]
+    public enum VersionifyMode
     {
         BumpBuild = 0x01,
         BumpRevsion = 0x02,

@@ -1,0 +1,17 @@
+{
+  "directory": "E:\\Projects\\Personal Projects\\Repos\\DataTools\\Core\\DataTools.Text",
+  "recursive": false,
+  "project": null,
+  "version": null,
+  "oldVersion": null,
+  "quiet": false,
+  "logFile": "pb.log",
+  "library": null,
+  "className": null,
+  "mode": "BumpBuild",
+  "ngo": true,
+  "packageName": null,
+  "nugetFailBehavior": "QuitError",
+  "packageConstraint": "Release",
+  "reportOnly": false
+}

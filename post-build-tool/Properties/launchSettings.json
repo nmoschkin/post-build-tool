@@ -2,7 +2,7 @@
   "profiles": {
     "post-build-tool": {
       "commandName": "Project",
-      "commandLineArgs": "/ngo /d \"E:\\Projects\\Personal Projects\\Repos\\DataTools\\Core\\DataTools.Text\""
+      "commandLineArgs": "/opt \"E:\\Projects\\Personal Projects\\Repos\\post-build-tool\\config.json\""
     },
     "external-test": {
       "commandName": "Project",

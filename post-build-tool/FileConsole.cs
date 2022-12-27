@@ -12,12 +12,15 @@ namespace PostBuildTool
         public FileConsole(bool silent, string filename)
         {
             Silent = silent;
-            this.fs = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.Read);
+            this.fs = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read);
+
+            WriteLine($"\r\n[{DateTime.Now:G}]");
         }
 
         public FileConsole(bool silent)
         {
             Silent = silent;
+            WriteLine($"\r\n[{DateTime.Now:G}]");
         }
 
         public FileConsole() : this(false)
@@ -27,37 +30,37 @@ namespace PostBuildTool
         public void Write(object obj = null)
         {
             if (!Silent) Console.Write(obj);
-            fs?.Write(Encoding.UTF8.GetBytes(obj.ToString()));
+            fs?.Write(Encoding.UTF8.GetBytes($"{obj}"));
         }
 
         public void WriteLine(object obj = null)
         {
             if (!Silent) Console.WriteLine(obj);
-            fs?.Write(Encoding.UTF8.GetBytes(obj.ToString() + "\r\n"));
+            fs?.Write(Encoding.UTF8.GetBytes($"{obj}\r\n"));
+        }
+
+        public void Flush()
+        {
+            fs?.Flush();
         }
 
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
-                if (disposing)
-                {
-                    fs?.Dispose();
-                    // TODO: dispose managed state (managed objects)
-                }
+                fs?.Flush();
+                fs?.Close();
 
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
                 disposedValue = true;
             }
         }
 
         // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~FileConsole()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
+        ~FileConsole()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
 
         public void Dispose()
         {

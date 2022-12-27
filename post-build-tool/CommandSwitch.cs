@@ -35,6 +35,10 @@
             {
                 Switches.Sort((a, b) =>
                 {
+                    if (a.Length == b.Length)
+                    {
+                        return string.Compare(a, b);
+                    }
                     return a.Length - b.Length;
                 });
 
