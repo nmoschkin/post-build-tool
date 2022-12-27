@@ -12,6 +12,8 @@ namespace PostBuildTool
 {
     internal static class Program
     {
+        private const string EnvConfig = "%POST_BUILD_TOOL_CONFIG%";
+
         private static void ProcessProject(string file)
         {
             FConsole.WriteLine($"Processing file '{Path.GetFileName(file)}' ...");
@@ -252,7 +254,10 @@ namespace PostBuildTool
 
             if (parsed.Count == 0 || (parsed.Count == 1 && parsed.TryGetValue("/opt", out cfg)))
             {
-                conffile = "config.json";
+                conffile = Environment.ExpandEnvironmentVariables(EnvConfig);
+                if (conffile == EnvConfig) conffile = null;
+
+                conffile = conffile ?? "config.json";
 
                 if (cfg != null && !string.IsNullOrEmpty(cfg.ArgumentValue)) conffile = cfg.ArgumentValue;
                 try
@@ -262,7 +267,8 @@ namespace PostBuildTool
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error reading options file '{conffile}'!");
-                    Console.WriteLine(ex);
+                    Console.WriteLine(ex.Message);
+                    CommandSwitch.PrintHelp(false);
                     Environment.Exit(4);
                 }
                 optloaded = true;
