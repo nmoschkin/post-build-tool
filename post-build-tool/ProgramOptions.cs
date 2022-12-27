@@ -117,6 +117,13 @@ namespace PostBuildTool
         public string PackageName { get; set; }
 
         /// <summary>
+        /// Specify the NuGet package directory.
+        /// </summary>
+        [JsonProperty("packageDirectory")]
+        [Switch("/ngd")]
+        public string PackageDirectory { get; set; }
+
+        /// <summary>
         /// Set the behavior if no NuGet packages are found.
         /// </summary>
         [JsonProperty("nugetFailBehavior")]

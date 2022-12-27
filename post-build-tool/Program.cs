@@ -35,7 +35,7 @@ namespace PostBuildTool
 
                 FConsole.WriteLine($"Scanning for NuGet packages in '{folder}' ...");
 
-                var nugets = FindAllNuGets(folder + "\\bin");
+                var nugets = FindAllNuGets(Options.PackageDirectory ?? folder);
                 bool failget = true;
 
                 if (nugets != null && nugets.Count > 0)
@@ -384,6 +384,7 @@ namespace PostBuildTool
                     { "BuildMinute2" , "and put the minute of the day in the build number" }
                 }),
                 new CommandSwitch("/ngo", "Scan NuGet packages to determine most recent last version."),
+                new CommandSwitch("/ngd", "Specify the NuGet package directory.", "dir"),
                 new CommandSwitch("/pn", "Specify the NuGet package name (used with /ngo.)", "name"),
                 new CommandSwitch(new[] { "/ngb" }, "Set the behavior if no NuGet packages are found.", true, "behavior", options: new Dictionary<string, string>()
                 {
