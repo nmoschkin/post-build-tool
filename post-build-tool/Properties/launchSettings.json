@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "post-build-tool": {
+      "commandName": "Project",
+      "commandLineArgs": "/d \"E:\\Projects\\Personal Projects\\Repos\\DataTools\\Core\\DataTools.Text\""
+    }
+  }
+}
