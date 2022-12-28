@@ -1,19 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>PostBuildTool</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <Configurations>Debug;Release;Release To Tools</Configurations>
+    <StartupObject>PostBuildTool.Program</StartupObject>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <PreviousVersion>1.0.0</PreviousVersion>
+    <Version>1.0.0</Version>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\PostBuildTool.Contracts\PostBuildTool.Contracts.csproj" />
   </ItemGroup>
-
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(OutDir)*&quot; &quot;E:\utils&quot;" />
+  </Target>
 </Project>
