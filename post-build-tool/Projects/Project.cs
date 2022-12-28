@@ -19,11 +19,22 @@ namespace PostBuildTool.Projects
             var json = JsonConvert.SerializeObject(this);
             var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
 
+            var seen = new List<string>();
+
             foreach (XmlNode node in elem.ChildNodes)
             {
                 if (dict.ContainsKey(node.Name))
                 {
                     node.InnerText = dict[node.Name];
+                    seen.Add(node.Name);
+                }
+            }
+
+            foreach (var kv in dict)
+            {
+                if (kv.Value != null && !seen.Contains(kv.Key))
+                {
+                    elem.InnerXml += $"<{kv.Key}>{kv.Value}</{kv.Key}>";
                 }
             }
         }
