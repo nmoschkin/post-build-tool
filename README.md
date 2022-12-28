@@ -6,6 +6,8 @@ There's really not much to it.  You can create custom versionifiers using the __
 
 Right now the default function is just to versionify. With a custom versionifier it's possible to change other core aspects of a project, but nothing outside of the top section, unless you override the writer and manipulate the XML yourself, which is also possible.
 
-There is some functionality to scan for NuGet packages and take version numbers from that, but that's it. I wrote this tool because I needed exactly this tool (it's hard to bump the version of 35 projects at one time, manually).
+There is some functionality to scan for NuGet packages and take version numbers from that, but that's it. 
+
+I wrote this tool because I needed exactly this tool (it's hard to bump the version of 35 projects at one time, manually).
 
 So, if someone else finds it useful, more power to them.  If this turns into something bigger, I'll definitely update the documentation.
