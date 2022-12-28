@@ -1,4 +1,4 @@
-# .NET Post-Build Event Tool
+# .NET Post-Build-Event Tool
 
 This tool is used at the end of successful builds to bump version numbers and build numbers in .NET Sdk-style projects.
 
