@@ -234,6 +234,14 @@ namespace PostBuildTool
 
         public static IVersionifier Versionifier { get; set; }
 
+        public static string HoneyGoSet
+        {
+            get
+            {
+                return "Hun";
+            }
+        }
+
         public static FileConsole FConsole { get; private set; }
         public static Dictionary<string, CommandSwitch> RunArgs { get; private set; }
 

@@ -46,7 +46,14 @@ namespace PostBuildTool.Projects
 
             foreach (XmlNode node in elem.ChildNodes)
             {
-                dict.Add(node.Name, node.InnerText);
+                if (dict.ContainsKey(node.Name))
+                {
+                    dict[node.Name] = node.InnerText;
+                }
+                else
+                {
+                    dict.Add(node.Name, node.InnerText);
+                }
             }
 
             var json = JsonConvert.SerializeObject(dict);
