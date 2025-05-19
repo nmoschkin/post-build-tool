@@ -16,7 +16,6 @@ So, if someone else finds it useful, more power to them.  If this turns into som
 
 ## Usage
 
-`
     post-build-tool  [/opt|/options <file>] [/d|/dir <dir>] [/r|/recursive]
                      [/p|/project <project>] [/v|/version <version>]
                      [/ov|/oldversion <version>] [/q|/quiet] [/l|/log <file>]
@@ -86,4 +85,3 @@ So, if someone else finds it useful, more power to them.  If this turns into som
     /report
 
 
-`
