@@ -2,7 +2,7 @@
 
 ## Automated .NET Whole Solution Version Bumping
 
-This tool is used at the end of successful builds to bump version numbers and build numbers in .NET Sdk-style projects.
+This tool is used at the end of successful builds to bump version numbers and build numbers for pretty much any .NET project except for the old .NET Framework project styles.
 
 There's really not much to it.  You can create custom versionifiers using the __IVersionifier__ interface and load your DLL via the command line switches or the configuration file.  The configuration file is recommended for advanced customization.
 
